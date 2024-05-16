@@ -10,6 +10,8 @@ class WatchlistSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    watchlist = WatchlistSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password', 'watchlist')
@@ -19,4 +21,5 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
+        user.save()
         return user

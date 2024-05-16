@@ -7,8 +7,6 @@ import psycopg2
 import psycopg2.extras
 from psycopg2.extras import Json
 from django.utils.dateparse import parse_datetime
-
-
 from users.models import Stock
 
 class StockDataView(View):
@@ -40,19 +38,32 @@ class StockDataView(View):
    
         return data
     
-    def save_stock_data(self, symbol, data):
-        time_series = data.get('Time Series (5min)', {})
-        for timestamp, values in time_series.items():
-            Stock.objects.create(
-                symbol=symbol,
-                timestamp=parse_datetime(timestamp),
-                open=values['1. open'],
-                high=values['2. high'],
-                low=values['3. low'],
-                close=values['4. close'],
-                volume=values['5. volume']
-            )
-    
+    # def save_stock_data(self, symbol, data):
+    #     time_series = data.get('Time Series (5min)', {})
+    #     for timestamp, values in time_series.items():
+    #         Stock.objects.create(
+    #             symbol=symbol,
+    #             timestamp=parse_datetime(timestamp),
+    #             open=values['1. open'],
+    #             high=values['2. high'],
+    #             low=values['3. low'],
+    #             close=values['4. close'],
+    #             volume=values['5. volume']
+    #         )
+    def save_stock_data(request, *args, **kwargs):
+      
+      latest_stocks = Stock.objects.order_by('-timestamp')[:10]  # Fetch the latest 10 stock entries
+      stock_data = [{
+        'timestamp': stock.timestamp,
+        'open': stock.open,
+        'high': stock.high,
+        'low': stock.low,
+        'close': stock.close,
+        'volume': stock.volume
+      } for stock in latest_stocks]
+      return JsonResponse(stock_data, safe=False)
+
+
     def get(self, request, *args, **kwargs):
         stock_symbol = 'IBM' # Example stock symbol
         stock_data = self.fetch_stock_data(stock_symbol)

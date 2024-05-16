@@ -3,12 +3,12 @@ from rest_framework import generics , permissions
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from .serializers import UserSerializer
+from .serializers import *
 from rest_framework.authtoken.views import ObtainAuthToken    
 from rest_framework import status  
 from rest_framework.decorators import api_view
 from .models import Watchlist
-from .serializers import WatchlistSerializer
+
 
 class UserListCreateAPIView(generics.ListCreateAPIView):
     queryset = User.objects.all()

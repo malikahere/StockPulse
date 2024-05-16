@@ -16,7 +16,7 @@ def update_user_concurrently(user_id, new_username, new_email):
     except Exception as e:
         return False, str(e)
     
-
+    
 class Stock(models.Model):
     symbol  = models.CharField(max_length=10, null=True)
     name = models.CharField(max_length=255, null=True)
