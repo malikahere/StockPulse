@@ -1,5 +1,6 @@
 {
   "name": "frontend",
+<<<<<<< HEAD
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -47,5 +48,22 @@
   },
   "devDependencies": {
     "typescript": "^5.4.5"
+=======
+  "version": "1.0.0",
+  "description": " StockPulse Frontend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "stock",
+    "pulse",
+    "frontend"
+  ],
+  "author": "Malika",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.3.1"
+>>>>>>> 7a9872e73eee91e8a61891edd7575602c60ec4f7
   }
 }
