@@ -65,14 +65,11 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 
-CORS_ORIGIN_WHITELIST = [
+CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
-#  CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-# ]
 
 ROOT_URLCONF = 'StockPulse.urls'
 
