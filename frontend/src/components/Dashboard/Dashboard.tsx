@@ -66,65 +66,6 @@
   // }, []);
 
 
-import React, { useState, useEffect } from 'react';
-import { Typography, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Paper } from '@mui/material';
 
-const StockDashboard: React.FC = () => {
-  const [stocks, setStocks] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Fetch data from Django backend
-    fetch('http://localhost:8000/stocks/')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setStocks(data); // Update state with fetched data
-      })
-      .catch((error) => {
-        setError(error.message); // Set error state if fetching fails
-      });
-  }, []);
-
-  if (error) {
-    return <div>Error: {error}</div>; // Display error message if fetching fails
-  }
-
-  return (
-    <div>
-      <Typography align='center' variant="h4">Stock Dashboard</Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Timestamp</TableCell>
-              <TableCell>Open</TableCell>
-              <TableCell>High</TableCell>
-              <TableCell>Low</TableCell>
-              <TableCell>Close</TableCell>
-              <TableCell>Volume</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {stocks.map((stock, index) => (
-              <TableRow key={index}>
-                <TableCell>{stock.timestamp}</TableCell>
-                <TableCell>{stock.open}</TableCell>
-                <TableCell>{stock.high}</TableCell>
-                <TableCell>{stock.low}</TableCell>
-                <TableCell>{stock.close}</TableCell>
-                <TableCell>{stock.volume}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </div>
-  );
-};
-
-export default StockDashboard;
+  
+  export {};

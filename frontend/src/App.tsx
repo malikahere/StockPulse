@@ -1,65 +1,83 @@
+import React, { useState, useEffect } from 'react';
 
+interface TimeSeriesData {
+  [timestamp: string]: {
+    "1. open": string;
+    "2. high": string;
+    "3. low": string;
+    "4. close": string;
+    "5. volume": string;
+  };
+}
 
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.tsx</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
+const StockDashboard: React.FC = () => {
+  const [timeSeriesData, setTimeSeriesData] = useState<TimeSeriesData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-// export default App;/
+  useEffect(() => {
+    fetch('http://localhost:8000/stocks/') // Adjust the URL to your backend API endpoint
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data && data['Time Series (5min)']) {
+          setTimeSeriesData(data['Time Series (5min)']);
+        } else {
+          throw new Error('Invalid response format');
+        }
+        setLoading(false);
+      })
+      .catch(error => {
+        setError(error.message);
+        setLoading(false);
+      });
+  }, []);
 
-// App.tsx
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
-// import React from 'react';
-// import { BrowserRouter as Router, Route,  Routes } from 'react-router-dom';
-// import LoginPage from './components/Auth/Login';
-// import RegisterPage from './components/Auth/Register';
-// import WatchlistPage from './components/Watchlist/Watchlist';
-// import DashboardPage from './components/Dashboard/Dashboard';
+  if (!timeSeriesData) {
+    return <p>No stock data available</p>;
+  }
 
-// const App: React.FC = () => {
-//   return (
-//     <Router>
-//       < Routes>
-//         <Route path="/login" Component={LoginPage} />
-//         <Route path="/register" Component={RegisterPage} />
-//         <Route path="/watchlist" Component={WatchlistPage} />
-//         <Route path="/" Component={DashboardPage} />
-//       </ Routes>
-//     </Router>
-//   );
-// }
-
-// export default App;
-
-import React from 'react';
-import StockDashboard from './components/Dashboard/Dashboard';
-
-const App: React.FC = () => {
   return (
     <div>
-      <StockDashboard />
+      <h2>Stock Time Series Data (5min)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Open</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Close</th>
+            <th>Volume</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(timeSeriesData).map(([timestamp, values]) => (
+            <tr key={timestamp}>
+              <td>{timestamp}</td>
+              <td>{values["1. open"]}</td>
+              <td>{values["2. high"]}</td>
+              <td>{values["3. low"]}</td>
+              <td>{values["4. close"]}</td>
+              <td>{values["5. volume"]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
 
-export default App;
-
-
-
+export default StockDashboard;

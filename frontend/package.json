@@ -1,6 +1,5 @@
 {
   "name": "frontend",
-<<<<<<< HEAD
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -21,6 +20,7 @@
     "react-router-dom": "^6.23.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
+    
   },
   "scripts": {
     "start": "react-scripts start",
@@ -47,23 +47,13 @@
     ]
   },
   "devDependencies": {
-    "typescript": "^5.4.5"
-=======
+    "typescript": "^5.4.5",
   "version": "1.0.0",
-  "description": " StockPulse Frontend",
+  "description": " StockPulse-frontend",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "stock",
-    "pulse",
-    "frontend"
-  ],
+  "test": "echo \"Error: no test specified\" && exit 1",
+  
   "author": "Malika",
-  "license": "ISC",
-  "dependencies": {
-    "react": "^18.3.1"
->>>>>>> 7a9872e73eee91e8a61891edd7575602c60ec4f7
-  }
+  "license": "ISC"
+}
 }
