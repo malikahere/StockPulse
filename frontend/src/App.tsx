@@ -91,6 +91,8 @@ import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
 import Market from './components/Market'; 
 import NewsItem from './components/News'; 
+// import WatchlistPage from './components/Watchlist/watchlist';
+import StockPage from './components/Stock'; 
 
 // import Login from './Login';
 
@@ -103,6 +105,8 @@ const App: React.FC = () => {
                     <Route path="/news" element={<NewsItem />} />
                     <Route path="/market"  element={<Market />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/stock" element={<StockPage />} />
+                    {/* <Route path="/watchlist/:watchlistName" element={<WatchlistPage />} /> */}
                     {/* <Route path="/login"  */}
                     <Route path="/dashboard" element={<Dashboard />} />
                 </Routes>
