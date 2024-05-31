@@ -1,4 +1,5 @@
 "# StockPulse" 
+
 -Download/clone repo.
 
 -Create and activate a virtual environment.
