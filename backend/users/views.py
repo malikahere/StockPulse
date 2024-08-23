@@ -1,15 +1,18 @@
 # users/views.py
-from rest_framework import generics , permissions
+from rest_framework import generics , permissions , status  
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import User
-from .serializers import *
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.views import ObtainAuthToken    
-from rest_framework import status  
-from rest_framework.decorators import api_view
-from .models import Watchlist
-
+from django.contrib.auth import authenticate, login
+from rest_framework.views import APIView
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from .serializers import *
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
 
 class UserListCreateAPIView(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -30,58 +33,29 @@ class UserRegistrationAPIView(generics.CreateAPIView):
         user = serializer.save()
         token, created = Token.objects.get_or_create(user=user)
         return Response({'token': token.key})
-   
-
-class UserLoginAPIView(ObtainAuthToken):
-     queryset = User.objects.all()
-     serializer_class = UserSerializer
-     
+    
+class UserLoginAPIView(APIView):
+     permission_classes = [AllowAny] 
      def post(self, request):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        
-        # Call the parent class's post method to handle authentication
-        response = super().post(request)
-        
-        # Check if authentication was successful
-        if 'token' in response.data:
-            # If authentication was successful, retrieve the user and return the token
-            user = serializer.validated_data['user']
-            token, _ = Token.objects.get_or_create(user=user)
-            return Response({'token': token.key}, status=status.HTTP_200_OK)
-        
-        # If authentication failed, return the response as is
-        return response
-     
-@api_view(['POST'])
-def create_watchlist(request):
-    serializer = WatchlistSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(user=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        username = request.data.get('username')
+        password = request.data.get('password')
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def watchlist_detail(request, watchlist_id):
-    try:
-        watchlist = Watchlist.objects.get(id=watchlist_id)
-    except Watchlist.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        if not username or not password:
+            return Response({"error": "Username and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    if request.method == 'GET':
-        serializer = WatchlistSerializer(watchlist)
-        return Response(serializer.data)
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({"error": "User does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
-    elif request.method == 'PUT':
-        serializer = WatchlistSerializer(watchlist, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = authenticate(request, username=username, password=password)
 
-    elif request.method == 'DELETE':
-        watchlist.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if user is not None:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({"token": token.key, "user_id": user.id}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Invalid username or password."}, status=status.HTTP_401_UNAUTHORIZED)
+    
 
 class UserProfileAPIView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
@@ -89,3 +63,6 @@ class UserProfileAPIView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+    
+
+

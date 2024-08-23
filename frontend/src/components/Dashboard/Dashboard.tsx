@@ -1,16 +1,73 @@
-import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Box, Button, Container, Grid, Paper, IconButton, Menu, MenuItem, ListItemIcon, ListItemText, Avatar, FormControl, Select, MenuItem as SelectMenuItem, SelectChangeEvent, InputBase } from '@mui/material';
-import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
-import { Add, Search } from '@mui/icons-material';
+
+import React, { useState, useEffect } from 'react';
+import { AppBar, Toolbar, Typography, Button, IconButton, Avatar, Menu, MenuItem, ListItemIcon, ListItemText, Container, Box, Grid, Paper, InputBase, IconButton as MuiIconButton, FormControl, InputLabel, Select, MenuItem as MuiMenuItem, SelectChangeEvent } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom'; // useNavigate instead of useHistory
+import SearchIcon from '@mui/icons-material/Search';
+import Add from '@mui/icons-material/Add';
+import { addToWatchlist } from '../Watchlist/WatchlistActions'; // Adjust import path
+import axios from 'axios';
 
 const Dashboard: React.FC = () => {
-    const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-    const [watchlist, setWatchlist] = React.useState<string>('');
-    const [searchQuery, setSearchQuery] = useState<string>('');
-    const [userWatchlists, setUserWatchlists] = useState<string[]>(['Watchlist 1', 'Watchlist 2', 'Watchlist 3']);
-    const navigate = useNavigate();
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [watchlist, setWatchlist] = useState<string>('');
+    const [userWatchlists, setUserWatchlists] = useState<string[]>([]);
+    const [showPrompt, setShowPrompt] = useState(false);
+    const [newWatchlistTitle, setNewWatchlistTitle] = useState('');
+    const [isWatchlistFetched, setIsWatchlistFetched] = useState(false);
+    const navigate = useNavigate(); // Use useNavigate hook
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+        console.log('User ID:', userId);
+      } else {
+        console.log('No user ID found in localStorage.');
+      }
 
-    const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    useEffect(() => {
+        if (userId) {
+            fetchWatchlists();
+        }
+    }, [userId]);
+    // , { params: { user_id: userId } }
+    const fetchWatchlists = async () => {
+        try {
+            // const response = await axios.get('http://127.0.0.1:8000/watchlist/uid/${userId}/' );
+            const response = await axios.get(`http://127.0.0.1:8000/watchlist/uid/${userId}/`, {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('authToken')}`
+
+                }
+            });
+            const watchlistTitles = response.data.map((watchlist: { title: string }) => watchlist.title);
+            setUserWatchlists(watchlistTitles);
+            setIsWatchlistFetched(true);
+        } catch (error) {
+            console.error('Error fetching watchlists:', error);
+        }
+    };
+    
+    const handlePromptSubmit = async () => {
+        if (newWatchlistTitle) {
+            try {
+                await addToWatchlist(newWatchlistTitle);
+                
+                    setWatchlist(newWatchlistTitle);
+                    setShowPrompt(false);
+                    navigate(`/watchlist/${newWatchlistTitle}`);
+                
+            } catch (error) {
+                console.error('Error adding watchlist:', error);
+                // Additional user-friendly error handling
+                alert('Failed to add watchlist. Please try again.');
+            }
+        }
+    };
+
+    const handlePromptCancel = () => {
+        setShowPrompt(false);
+    };
+
+    const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(event.currentTarget);
     };
 
@@ -18,21 +75,21 @@ const Dashboard: React.FC = () => {
         setAnchorEl(null);
     };
 
-    const handleWatchlistChange = (event: SelectChangeEvent<string>) => {
-      if (event.target.value === 'add_new') {
-          // Logic to add a new watchlist (e.g., open a dialog to enter watchlist name)
-          const newWatchlistName = prompt("Enter the name of the new watchlist:");
-          if (newWatchlistName) {
-              setUserWatchlists([...userWatchlists, newWatchlistName]);
-              setWatchlist(newWatchlistName);
-                navigate(`/watchlist/${newWatchlistName}`);
-          }
-      } else {
-          setWatchlist(event.target.value);
-      }
-  };
     const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(event.target.value);
+    };
+
+    const handleWatchlistChange = async (event: SelectChangeEvent<string>) => {
+        const selectedWatchlist = event.target.value as string;
+        if (selectedWatchlist === 'add_new') {
+            setShowPrompt(true);
+        } else {
+            if (!isWatchlistFetched) {
+                await fetchWatchlists();
+            }
+            setWatchlist(selectedWatchlist);
+            navigate(`/watchlist/${selectedWatchlist}`); // Use navigate to change route
+        }
     };
 
     return (
@@ -97,46 +154,56 @@ const Dashboard: React.FC = () => {
                     </Typography>
                     <Grid container spacing={2} alignItems="center">
                         <Grid item xs={9}>
-                            {/* Search Input */}
                             <Paper component="form" sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: '100%' }}>
                                 <InputBase
                                     sx={{ ml: 1, flex: 1 }}
-                                    placeholder="Search"
-                                    inputProps={{ 'aria-label': 'search' }}
+                                    placeholder="Enter company name"
                                     value={searchQuery}
                                     onChange={handleSearchInputChange}
+                                    inputProps={{ 'aria-label': 'search for company' }}
                                 />
-                                <IconButton type="submit" sx={{ p: '10px' }} aria-label="search">
-                                    <Search />
-                                </IconButton>
+                                <MuiIconButton type="button" sx={{ p: '10px' }} aria-label="search" onClick={() => {/* Handle search action */}}>
+                                    <SearchIcon />
+                                </MuiIconButton>
                             </Paper>
                         </Grid>
-                        <Grid textAlign={'center'} item xs={3}>
+                        <Grid item xs={3}>
                             <FormControl fullWidth>
-                            <Select
+                                <InputLabel id="watchlist-select-label">Watchlists</InputLabel>
+                                <Select
+                                    labelId="watchlist-select-label"
+                                    id="watchlist-select"
                                     value={watchlist}
                                     onChange={handleWatchlistChange}
-                                    displayEmpty
-                                    inputProps={{ 'aria-label': 'Select Watchlist' }}
+                                    inputProps={{ 'aria-label': 'select watchlist' }}
                                 >
-                                    <SelectMenuItem value="" disabled>
-                                        My Watchlists 🔽
-                                    </SelectMenuItem>
-                                    <SelectMenuItem value="add_new">
-                                        <ListItemIcon>
-                                            <Add />
-                                        </ListItemIcon>
-                                        <ListItemText primary="Add Watchlist" />
-                                    </SelectMenuItem>
-                                    {userWatchlists.map((watchlistName, index) => (
-                                        <SelectMenuItem key={index} value={watchlistName}>
-                                            {watchlistName}
-                                        </SelectMenuItem>
+                                    <MuiMenuItem value="">
+                                        <em>Select Watchlist</em>
+                                    </MuiMenuItem>
+                                    {userWatchlists.map((name) => (
+                                        <MuiMenuItem key={name} value={name}>
+                                            {name}
+                                        </MuiMenuItem>
                                     ))}
+                                    <MuiMenuItem value="add_new">
+                                        <em>Add New Watchlist</em>
+                                    </MuiMenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
                     </Grid>
+                    {showPrompt && (
+                        <div>
+                            <input
+                                type="text"
+                                placeholder="Enter new watchlist title"
+                                value={newWatchlistTitle}
+                                onChange={(e) => setNewWatchlistTitle(e.target.value)}
+                            />
+                            <button onClick={handlePromptSubmit}>Submit</button>
+                            <button onClick={handlePromptCancel}>Cancel</button>
+                        </div>
+                    )}
                 </Box>
             </Container>
         </div>
@@ -144,3 +211,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+    

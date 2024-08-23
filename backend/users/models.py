@@ -1,5 +1,7 @@
 from django.db import models, transaction
 from django.contrib.auth.models import User
+from datetime import datetime
+
 
 def update_user_concurrently(user_id, new_username, new_email):
     try:
@@ -25,7 +27,7 @@ class Stock(models.Model):
     low = models.DecimalField(max_digits=10, decimal_places=4, null=True)
     close = models.DecimalField(max_digits=10, decimal_places=4 , null=True)
     volume = models.PositiveIntegerField(null=True)
-    timestamp = models.DateTimeField(null=True)
+    last_updated = models.DateTimeField(null=True)
     # Other fields like market cap, sector, etc. can be added here
 
     def __str__(self):
@@ -34,18 +36,14 @@ class Stock(models.Model):
 
 class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    stocks = models.ManyToManyField(Stock, related_name='watchlists')
-    # Other fields like description, creation date, etc. can be added here
+    title = models.CharField(max_length=255)
+    stocks = models.ManyToManyField(Stock, related_name='watchlists', default=list)
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(default=datetime.now)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.title
     
-class UserStock(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    stock = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    # Other fields like quantity, purchase price, etc. can be added here
 
-    def __str__(self):
-        return f"{self.user.username}'s {self.stock.symbol}"
     

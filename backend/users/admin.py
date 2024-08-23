@@ -1,9 +1,12 @@
 from django.contrib import admin
-from .models import UserStock , Stock , Watchlist
+from .models import  Stock , Watchlist
+from django.contrib.auth.models import User
 
-admin.site.register(UserStock)
+
+class WatchlistAdmin(admin.ModelAdmin):
+    list_display = ('title', 'description', 'user')  # Adjust this according to your model fields
+
+admin.site.register(Watchlist, WatchlistAdmin)
 admin.site.register(Stock)
-admin.site.register(Watchlist)
 
-# Register your models here.
 
